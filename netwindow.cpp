@@ -23,12 +23,30 @@ NetWindow::NetWindow(QWidget *parent)
     ui->bitsHost->setText(iputil::binary_string(ip));
     ui->bitsMask->setText(iputil::binary_string(msk));
 
-    updateInfos();
+    updateInfos(true);
+
+    QString info = QString("%1.%2").arg(QHostInfo::localHostName()).arg(QHostInfo::localDomainName());
+    QLabel* labHost = new QLabel(this);
+    labHost->setText(info);
+    ui->statusBar->addPermanentWidget(labHost);
 }
 
 NetWindow::~NetWindow()
 {
     delete ui;
+}
+
+void NetWindow::resolveDone(QHostInfo info)
+{
+    ui->hostname->setText(info.errorString());
+    if (info.error() == QHostInfo::NoError)
+    {
+        QList<QHostAddress> as = info.addresses();
+        if (as.size() > 0)
+        {
+            ui->hostname->setText(as[0].toString());
+        }
+    }
 }
 
 void NetWindow::hostUpdated(QString value) {
@@ -37,7 +55,7 @@ void NetWindow::hostUpdated(QString value) {
     }
     ip = iputil::parse_ip(value);
     ui->bitsHost->setText(iputil::binary_string(ip));
-    updateInfos();
+    updateInfos(true);
 }
 
 void NetWindow::maskUpdated(QString value) {
@@ -49,7 +67,7 @@ void NetWindow::maskUpdated(QString value) {
     updateInfos();
 }
 
-void NetWindow::updateInfos() {
+void NetWindow::updateInfos(bool resolve) {
     net = ip & msk;
     ui->infoNetwork->setText(iputil::ip_string(net));
 
@@ -65,6 +83,11 @@ void NetWindow::updateInfos() {
 
     klass = iputil::net_class(ip);
     ui->infoClass->setText(klass);
+
+    if (resolve)
+    {
+        QHostInfo::lookupHost(host, this, SLOT(resolveDone(QHostInfo)));
+    }
 }
 
 void NetWindow::exitTriggered() {

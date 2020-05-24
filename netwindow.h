@@ -2,6 +2,7 @@
 #define NETWINDOW_H
 
 #include <QMainWindow>
+#include <QHostInfo>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class NetWindow; }
@@ -19,6 +20,7 @@ public slots:
     void hostUpdated(QString value);
     void maskUpdated(QString value);
     void exitTriggered();
+    void resolveDone(QHostInfo host);
 
 private:
     Ui::NetWindow *ui;
@@ -33,6 +35,6 @@ private:
     QString type = "";
     QString klass = "";
 
-    void updateInfos();
+    void updateInfos(bool resolve = false);
 };
 #endif // NETWINDOW_H
