@@ -20,6 +20,7 @@ SOURCES += \
     netwindow.cpp
 
 HEADERS += \
+    ip.h \
     netwindow.h
 
 FORMS += \
