@@ -1,6 +1,7 @@
 #include "netwindow.h"
 #include "ui_netwindow.h"
 #include "ip.h"
+#include <QSettings>
 
 NetWindow::NetWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -8,15 +9,17 @@ NetWindow::NetWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    loadSettings();
+
     ui->addrHost->setText(host);
     ui->addrMask->setText(mask);
 
     ui->addrHost->setFocus();
     ui->addrHost->selectAll();
 
-    connect(ui->addrHost, SIGNAL(textChanged(QString)), this, SLOT(hostUpdated(QString)));
-    connect(ui->addrMask, SIGNAL(textChanged(QString)), this, SLOT(maskUpdated(QString)));
-    connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(exitTriggered()));
+    connect(ui->addrHost, &QLineEdit::textChanged, this, &NetWindow::hostUpdated);
+    connect(ui->addrMask, &QLineEdit::textChanged, this, &NetWindow::maskUpdated);
+    connect(ui->actionExit, &QAction::triggered, this, &NetWindow::exitTriggered);
 
     ip = iputil::parse_ip(host);
     msk = iputil::parse_ip(mask);
@@ -53,6 +56,8 @@ void NetWindow::hostUpdated(QString value) {
     if (value == host || value == "") {
         return ;
     }
+    host = value;
+
     ip = iputil::parse_ip(value);
     ui->bitsHost->setText(iputil::binary_string(ip));
     updateInfos(true);
@@ -62,6 +67,8 @@ void NetWindow::maskUpdated(QString value) {
     if (value == mask || value == "") {
         return ;
     }
+    mask = value;
+
     msk = iputil::parse_ip(value);
     ui->bitsMask->setText(iputil::binary_string(msk));
     updateInfos();
@@ -86,11 +93,34 @@ void NetWindow::updateInfos(bool resolve) {
 
     if (resolve)
     {
-        QHostInfo::lookupHost(host, this, SLOT(resolveDone(QHostInfo)));
+        QHostInfo::lookupHost(host, this, &NetWindow::resolveDone);
     }
 }
 
 void NetWindow::exitTriggered() {
+    saveSettings();
     QApplication::quit();
+}
+
+void NetWindow::closeEvent(QCloseEvent *event)
+{
+    Q_UNUSED(event);
+    saveSettings();
+}
+
+void NetWindow::saveSettings()
+{
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, "midbel", "net-info");
+    settings.setValue("host", host);
+    settings.setValue("mask", mask);
+}
+
+void NetWindow::loadSettings()
+{
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, "midbel", "net-info");
+    QString h = settings.value("host").toString();
+    host = h.isEmpty() ? host : h;
+    QString m = settings.value("mask").toString();
+    mask = m.isEmpty() ? mask : m;
 }
 

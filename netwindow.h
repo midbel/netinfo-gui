@@ -22,6 +22,9 @@ public slots:
     void exitTriggered();
     void resolveDone(QHostInfo host);
 
+protected:
+    void closeEvent(QCloseEvent* event);
+
 private:
     Ui::NetWindow *ui;
     QString host = "127.000.000.001";
@@ -36,5 +39,7 @@ private:
     QString klass = "";
 
     void updateInfos(bool resolve = false);
+    void saveSettings();
+    void loadSettings();
 };
 #endif // NETWINDOW_H
