@@ -105,7 +105,7 @@ namespace iputil
                 qs.append("000");
             } else {
                 QString str = QString::number(byte);
-                qs.append(str.leftJustified(3, '0'));
+                qs.append(str.rightJustified(3, '0'));
             }
 
             shift -= 8;
